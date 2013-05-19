@@ -1,0 +1,24 @@
+<template name="member">
+ <button class="btn btn-small member-return">&lt;&lt; back to transactions</button>
+ <h3>{{member.profile.name}}</h3>
+ <p>Balance in this group: ${{balance}}</p>
+ {{#if me}}
+ <p>Net balance in all groups: ${{total_balance}}</p>
+ {{else}}
+   <div class="alert alert-success" {{#unless note}}style="display: none"{{/unless}}>{{note}}</div>
+   <form>
+	<fieldset>
+	 <legend>Credit limits</legend>
+     <label>{{member.profile.name}} will lend you up to: <strong>${{credit_to_me}}</strong></label>
+     <label>You will lend {{member.profile.name}} up to:</label>
+     <div class="input-prepend">
+      <span class="add-on">$</span>
+      <input id="member_credit" type="text" class="credit span5" value="{{credit}}" />
+     </div>
+     <br />
+     <button type="submit" class="btn extend">Update</button>
+    </fieldset>
+   </form>
+ {{/if}}
+</template>
+

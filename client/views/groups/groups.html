@@ -1,0 +1,82 @@
+<template name="groups">
+{{#if currentUser}}
+  {{#unless selected_group}}
+  <h4>Select or create a group.</h4>
+  {{/unless}}
+	<h5>
+	Group: 
+	<div class="btn-group">
+		<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+		 {{#if selected_group}}{{group.name}}{{else}}(please choose){{/if}}
+		 <span class="caret"></span>
+		</a>
+		<ul class="dropdown-menu">
+		 <li class="nav-header">My Groups</li>
+		 {{#each groups}}
+			 {{> group}}
+		 {{/each}}
+		 <li class="divider"></li>
+		 <li><a href="#" class="creategroup">New group...</a></li>
+		 <li class="divider"></li>
+		 <li class="nav-header">Other Groups</li>
+		 {{#each other_groups}}
+			 {{> group}}
+		 {{/each}}
+		</ul>
+	</div>
+	</h5>
+
+	<ul class="nav nav-list">
+		{{#if selected_group}}
+			{{#with group}}
+				{{> group_detail}}
+			{{/with}}
+		{{/if}}
+	</ul>
+{{else}}
+<h4>Create an account or log in to get started.</h4>
+{{/if}}
+</template>
+
+<template name="group">
+  <li{{#if selected}} class="active"{{/if}}>
+    <a href="#" class="group {{selected}}">{{name}}</a>
+  </li>
+</template>
+
+<template name="group_detail">
+  <p>{{description}}</p>
+  <li class="nav-header">Members</li>
+  {{#if is_member}}
+    {{#each member_list}}
+      {{> member_detail}}
+    {{/each}}
+  {{else}}
+    <p>Join this group to see its members.</p>
+  {{/if}}
+  <li class="divider"></li>
+  {{#if is_coordinator}}
+  With group:
+  <div class="btn-group">
+   <input type="button" class="btn btn-small editgroup" value="Edit" />
+   <input type="button" class="btn btn-small removegroup" value="Remove" />
+  </div>
+  {{else}}
+    {{#if is_member}}
+    <input type="button" class="btn btn-small leavegroup" value="Leave this group" />
+    {{/if}}
+  {{/if}}
+  {{#unless is_member}}
+  <input type="button" class="btn btn-small joingroup" value="Join this group" />
+  {{/unless}}
+</template>
+
+<template name="member_detail">
+  <li{{#if selected}} class="active"{{/if}}>
+    <a href="#" class="{{selected}}">
+	  {{displayName}} (${{balance}}) 
+      {{#if is_coordinator}}<i class="icon-wrench" title="Group coordinator"></i>{{/if}}
+      {{#if me}}<span class="label label-info">You</span>{{/if}}
+    </a>
+  </li>
+</template>

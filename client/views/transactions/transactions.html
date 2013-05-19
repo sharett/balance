@@ -1,0 +1,49 @@
+<template name="transactions">
+ <h3>
+   Transactions
+   <button style="float: right;" class="btn transaction-add">Add</button>
+ </h3>
+ <table class="table table-striped table-hover">
+  <thead>
+   <tr>
+    <th>date</th>
+		<th>description</th>
+		<th>total</th>
+		<th>debit (-)</th>
+		<th>credit (+)</th>
+   </tr>
+  </thead>
+  <tbody> 
+	 {{#each transactions}}
+	 {{> transaction}}
+	 {{/each}}
+   {{#unless transaction_count}}
+     <tr>
+       <td colspan="5">No transactions.</td>
+     </tr>
+   {{/unless}}
+  </tbody>
+ </table>
+</template>
+
+<template name="transaction">
+  <tr{{#if selected}} class="info"{{/if}}>
+    <td>{{date}}</td>
+    <td>{{description}}</td>
+    <td>{{total}}</td>
+    <td>{{debits}}</td>
+    <td>{{credits}}</td>
+    <td>
+			<div class="btn-group">
+       <button class="btn btn-small transaction-edit" title="Edit this transaction">
+				 <i class="icon-pencil"></i>
+			 </button>
+       <button class="btn btn-small transaction-remove" title="Remove this transaction">
+				 <i class="icon-remove"></i>
+			 </button>
+     </div>
+    </td>
+  </tr>
+</template>
+
+

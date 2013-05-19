@@ -1,0 +1,27 @@
+<template name="editGroup">
+  <div class="mask"> </div>
+  <div class="modal">
+    <div class="modal-header">
+      <button type="button" class="close cancel">&times;</button>
+      <h3>{{#if create}}New{{else}}Edit{{/if}} group</h3>
+    </div>
+
+    <div class="modal-body">
+      {{#if error}}
+        <div class="alert alert-error">{{error}}</div>
+      {{/if}}
+
+      <label>Name</label>
+      <input type="text" class="group_name span5" value="{{group_name}}">
+
+      <label>Description</label>
+      <textarea class="description span5">{{description}}</textarea>
+    </div>
+
+    <div class="modal-footer">
+      <a href="#" class="btn cancel">Cancel</a>
+      <a href="#" class="btn btn-primary save">{{#if create}}Create{{else}}Update{{/if}}</a>
+    </div>
+  </div>
+</template>
+
