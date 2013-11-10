@@ -1,0 +1,30 @@
+<template name="inviteGroup">
+  <div class="mask"> </div>
+  <div class="modal">
+    <div class="modal-header">
+      <button type="button" class="close cancel">&times;</button>
+      <h3>Invite a new member</h3>
+    </div>
+
+    <div class="modal-body">
+      {{#if error}}
+        <div class="alert alert-error">{{error}}</div>
+      {{/if}}
+
+      <label>Name</label>
+      <input id="invite_group_name" type="text" class="invite_name span5" value="{{invite_name}}">
+
+      <label>E-mail</label>
+      <input id="invite_group_email" type="text" class="invite_email span5" value="{{invite_email}}">
+
+      <label>Personal message</label>
+      <textarea id="invite_group_msg" class="invite_msg span5" rows="5">{{invite_msg}}</textarea>
+    </div>
+
+    <div class="modal-footer">
+      <a href="#" class="btn cancel">Cancel</a>
+      <a href="#" class="btn btn-primary invite">Invite</a>
+    </div>
+  </div>
+</template>
+

@@ -11,6 +11,13 @@ displayName = function (user) {
   return 'No name';
 };
 
+balance_fullName = function (user) {
+	if (user.profile && user.profile.name)
+			return user.profile.name;
+  
+  return 'No name';
+};
+
 var contactEmail = function (user) {
   if (user.emails && user.emails.length)
     return user.emails[0].address;

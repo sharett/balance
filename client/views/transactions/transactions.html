@@ -1,8 +1,65 @@
 <template name="transactions">
  <h3>
-   Transactions
-   <button style="float: right;" class="btn transaction-add">Add</button>
+	 Transactions
+     <form class="form-inline" style="float: right;">
+			 <div class="input-append">
+			  <input id="transaction_search" type="text" class="input-medium search-query" 
+			         placeholder="Search" value="{{search_query}}" />
+       </div>	  	  
+	  	 <div class="btn-group">
+				 <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+					{{#if filter_month}}{{filter_month.description}}{{else}}Date{{/if}}
+					<span class="caret"></span>
+				 </a>
+				 <ul class="dropdown-menu pull-right">
+					 <li>
+						 <a class="transaction-filter-month-none" tabindex="-1" href="#">
+							 {{#if filter_month}}&nbsp;&nbsp;&nbsp;{{else}}<i class="icon-ok"></i>{{/if}} <em>(no filter)</em>
+						 </a>
+					 </li>
+					 {{#each months}}
+						 {{> filter_month}}
+					 {{/each}}
+				 </ul>
+			 </div>
+			 <div class="btn-group">
+				 <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+					{{filter_member_name}}
+					<span class="caret"></span>
+				 </a>
+				 <ul class="dropdown-menu pull-right">
+					 <li>
+						 <a class="transaction-filter-member-none" tabindex="-1" href="#">
+							 {{#if filter_member}}&nbsp;&nbsp;&nbsp;{{else}}<i class="icon-ok"></i>{{/if}} <em>(no filter)</em>
+						 </a>
+					 </li>
+					 {{#each members}}
+						 {{> filter_member}}
+					 {{/each}}
+				 </ul>
+			 </div>
+			 <div class="btn-group">
+				<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+					Add
+					<span class="caret"></span>
+				</a>
+				<ul class="dropdown-menu pull-right">
+					<li><a class="transaction-add-charge" tabindex="-1" href="#">Charge</a></li>
+					<li><a class="transaction-add-payment" tabindex="-1" href="#">Payment</a></li>
+					<li><a class="transaction-add-reimbursement" tabindex="-1" href="#">Reimbursement</a></li>
+					<li><a class="transaction-add" tabindex="-1" href="#">Other</a></li>
+				</ul>
+			 </div>
+		</form> 	
  </h3>
+ <div class="alert alert-error" {{#unless error}}style="display: none"{{/unless}}>
+	 {{error}}
+ </div>
+ {{#if approval_required}}
+ <div class="alert alert-warning">
+	 Please review the red shaded transactions.  Approve them by clicking the orange check button.
+ </div>
+ {{/if}}
  <table class="table table-striped table-hover">
   <thead>
    <tr>
@@ -11,6 +68,7 @@
 		<th>total</th>
 		<th>debit (-)</th>
 		<th>credit (+)</th>
+		<th>&nbsp;</th>
    </tr>
   </thead>
   <tbody> 
@@ -19,31 +77,87 @@
 	 {{/each}}
    {{#unless transaction_count}}
      <tr>
-       <td colspan="5">No transactions.</td>
+       <td colspan="7">No transactions.</td>
      </tr>
    {{/unless}}
   </tbody>
  </table>
 </template>
 
+<template name="filter_month">
+  <li>
+		<a class="transaction-filter-month" tabindex="-1" href="#">
+			{{#if selected}}<i class="icon-ok"></i>{{else}}&nbsp;&nbsp;&nbsp;{{/if}} {{description}}
+		</a>
+	</li>
+</template>
+
+<template name="filter_member">
+  <li>
+		<a class="transaction-filter-member" tabindex="-1" href="#">
+			{{#if selected}}<i class="icon-ok"></i>{{else}}&nbsp;&nbsp;&nbsp;{{/if}} {{displayName}}
+		</a>
+	</li>
+</template>
+
 <template name="transaction">
-  <tr{{#if selected}} class="info"{{/if}}>
-    <td>{{date}}</td>
-    <td>{{description}}</td>
-    <td>{{total}}</td>
-    <td>{{debits}}</td>
-    <td>{{credits}}</td>
+  <tr
+    {{#if selected}}
+      class="info"
+    {{else}}
+  		{{#unless approved}}
+				class="warning"
+			{{/unless}}
+    {{/if}}>
+    <td class="transaction">{{date}}</td>
+    <td class="transaction">{{description}}</td>
+    <td class="transaction">{{total}}</td>
+    <td class="transaction">
+			<ul class="unstyled">
+			{{#each debits}}
+			  {{> transaction_split}}
+			{{/each}}
+			</ul>
+		</td>
+    <td class="transaction">
+			<ul class="unstyled">
+			{{#each credits}}
+			  {{> transaction_split}}
+			{{/each}}
+			</ul>
+		</td>
     <td>
 			<div class="btn-group">
-       <button class="btn btn-small transaction-edit" title="Edit this transaction">
-				 <i class="icon-pencil"></i>
-			 </button>
-       <button class="btn btn-small transaction-remove" title="Remove this transaction">
-				 <i class="icon-remove"></i>
-			 </button>
-     </div>
+				<button class="btn btn-small transaction-edit" title="Edit this transaction">
+					<i class="icon-pencil"></i>
+				</button>
+				<button class="btn btn-small dropdown-toggle" data-toggle="dropdown">
+					<span class="caret"></span>
+				</button>
+				<ul class="dropdown-menu pull-right">
+				  <li><a tabindex="-1" href="#" class="transaction-copy"><i class="icon-plus"></i> Copy</a></li>
+				  <li><a tabindex="-1" href="#" class="transaction-remove"><i class="icon-remove"></i> Remove</a></li>
+				</ul>
+			</div>
+ 		  {{#unless approved}}
+		  <div class="btn-group">
+	 		  <button id="a_{{_id}}" class="btn btn-small btn-warning transaction-approve" title="Approve this transaction">
+			    <i class="icon-ok"></i>
+			  </button>
+      </div>
+		  {{/unless}}
     </td>
   </tr>
 </template>
 
-
+<template name="transaction_split">
+  {{#if member.active}}
+		{{#if approved}}
+		<li>{{member.displayName}} {{amount}}</li>
+		{{else}}
+		<li class="text-warning">{{member.displayName}} {{amount}}</li>
+		{{/if}}
+	{{else}}
+	  <li>{{member.displayName}} {{amount}} <i class="icon-ban-circle" title="Inactive member"></i></li>
+	{{/if}}
+</template>

@@ -3,7 +3,7 @@
   <div class="modal">
     <div class="modal-header">
       <button type="button" class="close cancel">&times;</button>
-      <h3>{{#if create}}New{{else}}Edit{{/if}} transaction</h3>
+      <h3>{{#if create}}New{{/if}}{{#if edit}}Edit{{/if}}{{#if copy}}Copy{{/if}} {{type_description}}</h3>
     </div>
 
     <div class="modal-body">
@@ -12,37 +12,101 @@
       {{/if}}
 
       <label>Date</label>
-      <input type="text" id="transaction-date" class="transaction-date span5" 
+      <input type="text" id="transaction-date" class="transaction-date span3" 
              value="{{transaction_date}}">
 
       <label>Description</label>
       <input type="text" id="transaction-description" class="transaction-description span5" 
              value="{{transaction_description}}">
-
-      <table class="table table-condensed">
-				<thead>
-				 <tr>
-					<th>name</th>
-					<th>debit (-)</th>
-					<th>credit (+)</th>
-				 </tr>
-				</thead>
-				<tbody>
-				{{#each group_members}}
-					{{> editTransactionMember}}
-				{{/each}}
-				 <tr class="{{total_ok}}">
-					<td colspan="3" style="text-align: center;">
-					Total: {{total}}
-					</td>
-				 </tr>
-				</tbody>
-      </table>
+      {{#if charge}}
+				<label>Charge:</label>
+				<select id="transaction-debit" class="transaction-debit span2">
+					<option value="">(choose)</option>
+					{{#each group_members}}
+						{{> editTransactionMemberDebitOption}}
+					{{/each}}
+				</select>
+				<div class="input-prepend">
+					<span class="add-on">$</span>
+					<input id="transaction-total" type="text" style="color: red;" 
+								 class="transaction-total span1" value="{{transaction_total}}" />
+				</div>
+				<label>and credit:</label>
+				<select id="transaction-credit" class="transaction-credit span2">
+					<option value="">(choose)</option>
+					{{#each group_members}}
+						{{> editTransactionMemberCreditOption}}
+					{{/each}}
+				</select>
+      {{/if}}
+      {{#if payment}}
+				<label>Payment</label>
+				<select id="transaction-credit" class="transaction-credit span2">
+					<option value="">(choose)</option>
+					{{#each group_members}}
+						{{> editTransactionMemberCreditOption}}
+					{{/each}}
+				</select>
+				paid 
+				<select id="transaction-debit" class="transaction-debit span2">
+					<option value="">(choose)</option>
+					{{#each group_members}}
+						{{> editTransactionMemberDebitOption}}
+					{{/each}}
+				</select>
+				<br />
+				<div class="input-prepend">
+					<span class="add-on">$</span>
+					<input id="transaction-total" type="text"
+								 class="transaction-total span1" value="{{transaction_total}}" />
+				</div>
+      {{/if}}
+      {{#if reimbursement}}
+				<label>Reimburse:</label>
+				<select id="transaction-credit" class="transaction-credit span2">
+					<option value="">(choose)</option>
+					{{#each group_members}}
+						{{> editTransactionMemberCreditOption}}
+					{{/each}}
+				</select>
+				<div class="input-prepend">
+					<span class="add-on">$</span>
+					<input id="transaction-total" type="text"
+									class="transaction-total span1" value="{{transaction_total}}" />
+				</div>
+      {{/if}}
+      {{#unless charge}}
+				{{#unless payment}}
+					<table class="table table-condensed">
+						<thead>
+						 <tr>
+							<th>name</th>
+							<th>debit (-)</th>
+							<th>credit (+)</th>
+						 </tr>
+						</thead>
+						<tbody>
+						{{#each group_members}}
+						  {{#if reimbursement}}
+						    {{> editTransactionMemberReimbursement}}
+						  {{else}}
+								{{> editTransactionMember}}
+							{{/if}}
+						{{/each}}
+						 <tr class="{{total_ok}}">
+							<td colspan="3" style="text-align: center;">
+							Total: {{total}}
+							</td>
+						 </tr>
+						</tbody>
+					</table>
+				{{/unless}}
+      {{/unless}}
     </div>
 
     <div class="modal-footer">
       <a href="#" class="btn cancel">Cancel</a>
-      <a href="#" class="btn btn-primary save">{{#if create}}Create{{else}}Update{{/if}}</a>
+      <a href="#" class="btn btn-primary save">{{#if create}}Create{{/if}}{{#if edit}}Update{{/if}}{{#if copy}}Copy{{/if}}</a>
     </div>
   </div>
 </template>
@@ -65,5 +129,39 @@
 		 </div>
     </td>
    </tr>
+</template>
+
+<template name="editTransactionMemberReimbursement">
+   <tr>
+    <td>
+			<label class="checkbox">
+				<input id="r_{{_id}}" class="transaction-reimburse" type="checkbox" 
+							 {{#if reimburse_checkbox}}checked="checked"{{/if}} />
+				{{displayName}}:
+			</label>
+		</td>
+    <td>
+		 <div class="input-prepend">
+			<span class="add-on">$</span>
+			<input id="d_{{_id}}" type="text" style="color: red;" 
+			       class="transaction-amount transaction-debit span1" value="{{debit}}" />
+		 </div>
+    </td>
+    <td>
+		 <div class="input-prepend">
+			<span class="add-on">$</span>
+			<input id="c_{{_id}}" type="text" 
+			       class="transaction-amount transaction-credit span1" value="{{credit}}" />
+		 </div>
+    </td>
+   </tr>
+</template>
+
+<template name="editTransactionMemberDebitOption">
+	<option value="{{_id}}"{{#if selected}} selected="selected"{{/if}}>{{displayName}}</option>
+</template>
+
+<template name="editTransactionMemberCreditOption">
+	<option value="{{_id}}"{{#if selected}} selected="selected"{{/if}}>{{displayName}}</option>
 </template>
 

@@ -21,6 +21,9 @@
   {{#if showEditGroupDialog}}
   {{> editGroup}}
   {{/if}}
+  {{#if showInviteGroupDialog}}
+  {{> inviteGroup}}
+  {{/if}}
   {{#if showProfileDialog}}
   {{> editProfile}}
   {{/if}}
@@ -42,8 +45,12 @@
 	  <div class="nav-collapse collapse">
 		<ul class="nav">
 		  <li><a href="#" class="go-home">Home</a></li>
+		  <li><a href="#" class="go-faq">FAQ</a></li>
 		  {{#if currentUser}}
 		  <li><a href="#" class="editprofile">Profile</a></li> 
+		  {{/if}}
+		  {{#if adminUser}}
+		  <li><a href="#" class="adminmenu">Admin</a></li> 
 		  {{/if}}
 		</ul>
 	  </div><!--/.nav-collapse -->
@@ -68,18 +75,26 @@
 	   {{> home}}
 	 {{/if}}
  {{else}}
-   {{> home}}
+   {{#if display_faq}}
+     {{> faq}}
+   {{else}}
+     {{> home}}
+   {{/if}}
  {{/if}}
 {{else}}
- {{> home}}
+ {{#if display_faq}}
+	 {{> faq}}
+ {{else}}
+	 {{> home}}
+ {{/if}}
 {{/if}}
 </template>
 
 <template name="home">
 	<div class="hero-unit">
 		<h1>Balance</h1>
-		<p>Balance is a tool to keep track of shared finances for groups.</p>
-		<p><a href="#" class="btn btn-primary btn-medium">Learn more &raquo;</a></p>
+		<p>Balance is an open-source tool to keep track of shared finances for groups.</p>
+		<p><a href="#" class="btn btn-primary btn-medium learn-more">Learn more &raquo;</a></p>
 	</div>
 	<div class="row-fluid">
 		<div class="span4">
@@ -87,41 +102,69 @@
 			<p>Balance is a mutual credit system.  Everyone's balance starts at zero.  In the
 			simplest transaction, one person's balance goes down and the other's goes up by an
 			equal amount.</p>
-			<p><a class="btn" href="#">View details &raquo;</a></p>
 		</div><!--/span-->
 		<div class="span4">
 			<h2>Transactions</h2>
 			<p>Keep track of complicated transactions, such as bills that one person pays, but
 			everyone shares in.  Balance keeps a running total of how much each person owes or
 			is owed.</p>
-			<p><a class="btn" href="#">View details &raquo;</a></p>
 		</div><!--/span-->
 		<div class="span4">
 			<h2>Fewest payments</h2>
 			<p>When the time comes to settle up, Balance will calculate the minimum number of 
-			payments required to pay everyone and bring everyone's balance back to zero.</p>
-			<p><a class="btn" href="#">View details &raquo;</a></p>
+			payments required to pay everyone and bring everyone's balance back to zero. 
+			<em>(Coming soon)</em></p>
 		</div><!--/span-->
 	</div><!--/row-->
 	<div class="row-fluid">
 		<div class="span4">
 			<h2>Credit limits</h2>
 			<p>You decide how much credit you are willing to extend to each person.  Balance makes
-			sure no transactions will exceed those limits.</p>
-			<p><a class="btn" href="#">View details &raquo;</a></p>
+			sure no transactions will exceed those limits. <em>(Coming soon)</em></p>
 		</div><!--/span-->
 		<div class="span4">
 			<h2>Permissions</h2>
 			<p>You set what permissions are needed to create, modify and remove transactions.  An informal
 			group of friends may allow any transactions, while others may require approval of each
 			transaction.</p>
-			<p><a class="btn" href="#">View details &raquo;</a></p>
 		</div><!--/span-->
 		<div class="span4">
 			<h2>Currencies</h2>
 			<p>Balance supports the currency of your choice, including time-based currencies for keeping
-			track of hours worked.</p>
-			<p><a class="btn" href="#">View details &raquo;</a></p>
+			track of hours worked. <em>(Coming soon)</em></p>
 		</div><!--/span-->
 	</div><!--/row-->
+</template>
+
+<template name="faq">
+	<div class="page-header">
+    <h1>Frequently asked questions</h1>
+  </div>
+
+	<h3>What is balance?</h3>
+	<p>Balance is an open-source tool to keep track of shared finances for groups.  Its respository is located
+	on <a href="https://github.com/sharett/balance">Github</a>.</p>
+
+	<h3>What do the different types of groups mean?</h3>
+	<ul>
+	  <li><strong>Open:</strong> The group is visible to everyone, and anyone may join.</li>
+	  <li><strong>Visible:</strong> The group is visible to everyone, and anyone may request to join,
+		  but must be approved by a group coordinator.</li>
+	  <li><strong>Invite only:</strong> The group is invisible except to members.  A group coordinator may
+		  invite someone to join.</li>
+	</ul>
+	
+	<h3>What are the types of transactions?</h3>
+	<ul>
+	  <li><strong>Charge:</strong> A simple transaction between two members, where one member is charged
+	  and the other credited.</li>
+	  <li><strong>Payment:</strong> A record of a payment made by one member to another.</li>
+	  <li><strong>Reimbursement:</strong> When one member has paid for something and needs to be reimbursed
+	  by multiple other members, use this transaction type.  Designate who to reimburse and how much, and check
+	  the checkboxes next to each member's name if they should be charged.  If the member who's being
+	  reimbursed shares in the transaction, check their box too.  The system will evenly distribute
+	  the charges, but you can modify them further if you wish.  All charges and credits must add up to zero.</li>
+	  <li><strong>Other:</strong> The most flexible type.  Debit and credit any number of members, as long
+	  as all charges and credits add up to zero.</li>
+  </ul>	
 </template>

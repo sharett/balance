@@ -1,20 +1,44 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Navbar
 
+Template.navbar.adminUser = function() {
+	return (Meteor.user() && Meteor.user().emails[0].address == Balance.adminEmail);
+};
+
 Template.navbar.events({
   'click .go-home': function () {
     Session.set("selected_group", null);
+    Session.set("display_faq", false);
   },
-});
-
-
-Template.navbar.events({
-  'click .editprofile': function () {
+  'click .go-faq': function () {
+    Session.set("selected_group", null);
+    Session.set("display_faq", true);
+  },
+  'click .editprofile': function (event, template) {
     if (! Meteor.userId()) // must be logged in
       return;
     openProfileDialog();
-  }
-});	
+  },
+  'click .adminmenu': function () {
+    if (! Meteor.userId()) // must be logged in
+      return;
+    if (Meteor.user().emails[0].address != Balance.adminEmail)
+			return;
+		
+		alert("Nothing to do.");
+		
+		/*if (confirm("Are you sure you want to fix the dates?")) {
+			Meteor.call('fixDates', {
+				}, function (error) {
+					if (error) {
+						alert(error.reason);
+					} else {
+						
+					}
+			});
+		}*/
+  },
+});
 
 ///////////////////////////////////////////////////////////////////////////////
 // Main
@@ -24,11 +48,23 @@ Template.main.selected_member = function() {
 };
 
 Template.main.is_user_member_of_selected_group = function() {
-	// is the current user a member of the selected group?
-  var group = Groups.findOne(Session.get("selected_group"));
-  if (!group) {
-	  return false;
-  }
-
-  return _.contains(group.members, Meteor.userId());
+	var member = balance_getGroupMember(Session.get("selected_group"), Meteor.userId());
+	if (!member)
+		return false;
+	
+	return member.status == 'active';
 };
+
+Template.main.display_faq = function() {
+  return Session.get("display_faq");
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// Home
+
+Template.home.events({
+  'click .learn-more': function () {
+    Session.set("selected_group", null);
+    Session.set("display_faq", true);
+  },
+});

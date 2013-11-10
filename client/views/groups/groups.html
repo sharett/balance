@@ -35,30 +35,32 @@
 	</ul>
 {{else}}
 <h4>Create an account or log in to get started.</h4>
+<p>Use the "Sign In / Up" menu in the upper right corner of the screen.</p>
 {{/if}}
 </template>
 
 <template name="group">
   <li{{#if selected}} class="active"{{/if}}>
-    <a href="#" class="group {{selected}}">{{name}}</a>
+    <a href="#" class="group {{selected}}">{{name}}{{#if is_invited}} (invited){{/if}}</a>
   </li>
 </template>
 
 <template name="group_detail">
   <p>{{description}}</p>
-  <li class="nav-header">Members</li>
+  <li class="nav-header">Settings</li>
+  <li>Type: {{type}}</li>
   {{#if is_member}}
+  <li class="nav-header">Members</li>
     {{#each member_list}}
       {{> member_detail}}
     {{/each}}
-  {{else}}
-    <p>Join this group to see its members.</p>
   {{/if}}
   <li class="divider"></li>
   {{#if is_coordinator}}
   With group:
   <div class="btn-group">
    <input type="button" class="btn btn-small editgroup" value="Edit" />
+   <input type="button" class="btn btn-small invitegroup" value="Invite" />
    <input type="button" class="btn btn-small removegroup" value="Remove" />
   </div>
   {{else}}
@@ -67,15 +69,38 @@
     {{/if}}
   {{/if}}
   {{#unless is_member}}
-  <input type="button" class="btn btn-small joingroup" value="Join this group" />
+    {{#if is_requested}}
+      <p>You have requested to join this group and are waiting for coodinator approval.</p>
+    {{/if}}
+    {{#if is_invited}}
+      <p>You have been invited to join this group.</p>
+      <input type="button" class="btn btn-small joingroup" value="Accept invitation" />
+    {{/if}}
+    {{#if is_rejected}}
+      <p>You are not allowed to join this group.</p>
+    {{/if}}
+    {{#if has_left}}
+      <p>You have been a member of this group.</p>
+      <input type="button" class="btn btn-small joingroup" value="Rejoin this group" />
+    {{/if}}
+    {{#if can_join}}
+			{{#if type_open}}
+				<input type="button" class="btn btn-small joingroup" value="Join this group" />
+			{{/if}}
+			{{#if type_visible}}
+			  <input type="button" class="btn btn-small joingroup" value="Ask to join this group" />
+			{{/if}}
+		{{/if}}
   {{/unless}}
 </template>
 
 <template name="member_detail">
   <li{{#if selected}} class="active"{{/if}}>
     <a href="#" class="{{selected}}">
-	  {{displayName}} (${{balance}}) 
-      {{#if is_coordinator}}<i class="icon-wrench" title="Group coordinator"></i>{{/if}}
+			{{displayName}}
+	    (${{balance}})
+	    {{#unless active}}<i class="icon-ban-circle" title="Inactive member"></i>{{/unless}}
+      {{#if coordinator}}<i class="icon-wrench" title="Group coordinator"></i>{{/if}}
       {{#if me}}<span class="label label-info">You</span>{{/if}}
     </a>
   </li>

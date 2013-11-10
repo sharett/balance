@@ -1,14 +1,42 @@
 <template name="member">
- <button class="btn btn-small member-return">&lt;&lt; back to transactions</button>
- <h3>{{member.profile.name}}</h3>
- <p>Balance in this group: ${{balance}}</p>
- {{#if me}}
- <p>Net balance in all groups: ${{total_balance}}</p>
- {{else}}
-   <div class="alert alert-success" {{#unless note}}style="display: none"{{/unless}}>{{note}}</div>
-   <form>
-	<fieldset>
-	 <legend>Credit limits</legend>
+  <button class="btn btn-small member-return">&lt;&lt; view transactions</button>
+  <h3>{{member.profile.name}}</h3>
+  <div class="alert alert-success" {{#unless note}}style="display: none"{{/unless}}>{{note}}</div>
+  <div class="alert alert-error" {{#unless error}}style="display: none"{{/unless}}>{{error}}</div>
+  {{#if me}}
+    <p>Net balance in all groups: ${{total_balance}}</p>
+  {{/if}}
+  <legend>Group</legend>
+	<label>Balance: ${{balance}}</label>
+  {{#if is_user_group_coordinator}}
+    {{#if me}}
+    <label>Status: {{member.status}}</label>
+    {{else}}
+    <label>Status:</label>
+		<select id="edit_status_type" class="status_type span2">
+			{{#each status_type_options}}
+				{{> editStatusTypeOption}}
+			{{/each}}
+		</select>
+		{{/if}}
+  {{else}}
+ 	  <label>Status: {{member.status}}</label>
+ 	{{/if}}
+  {{#if me}}
+		</ul>
+		<label>Transactions approval is required for:</label>
+		<select id="edit_approval_type" class="approval_type span2">
+			{{#each approval_type_options}}
+				{{> editApprovalTypeOption}}
+			{{/each}}
+		</select>
+	{{else}}
+	<label>Transactions approval is required for: {{member.approval}}</label>
+  {{/if}}
+  {{#unless me}}
+  <form>
+	 <fieldset>
+	  <legend>Credit limits</legend>
      <label>{{member.profile.name}} will lend you up to: <strong>${{credit_to_me}}</strong></label>
      <label>You will lend {{member.profile.name}} up to:</label>
      <div class="input-prepend">
@@ -17,8 +45,15 @@
      </div>
      <br />
      <button type="submit" class="btn extend">Update</button>
-    </fieldset>
-   </form>
- {{/if}}
+   </fieldset>
+  </form>
+  {{/unless}}
 </template>
 
+<template name="editStatusTypeOption">
+	<option value="{{option}}"{{#if selected}} selected="selected"{{/if}}>{{option}}</option>
+</template>
+
+<template name="editApprovalTypeOption">
+	<option value="{{option}}"{{#if selected}} selected="selected"{{/if}}>{{option}}</option>
+</template>

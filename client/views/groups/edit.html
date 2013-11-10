@@ -12,10 +12,17 @@
       {{/if}}
 
       <label>Name</label>
-      <input type="text" class="group_name span5" value="{{group_name}}">
+      <input id="edit_group_name" type="text" class="group_name span5" value="{{group_name}}">
 
       <label>Description</label>
-      <textarea class="description span5">{{description}}</textarea>
+      <textarea id="edit_group_description" class="description span5">{{description}}</textarea>
+
+      <label>Type</label>
+      <select id="edit_group_type" class="group_type span3">
+			 	{{#each group_type_options}}
+					{{> editGroupTypeOption}}
+				{{/each}}
+      </select>
     </div>
 
     <div class="modal-footer">
@@ -23,5 +30,9 @@
       <a href="#" class="btn btn-primary save">{{#if create}}Create{{else}}Update{{/if}}</a>
     </div>
   </div>
+</template>
+
+<template name="editGroupTypeOption">
+	<option value="{{option}}"{{#if selected}} selected="selected"{{/if}}>{{description}}</option>
 </template>
 

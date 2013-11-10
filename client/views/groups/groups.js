@@ -3,12 +3,50 @@
 
 // Groups that this user is a member of
 Template.groups.groups = function () {
-  return Groups.find({ members: Meteor.userId() });
+	var groups = Groups.find({ "members.userId": Meteor.userId() });
+	
+	var groupList = new Array();
+	groups.forEach( function (group) {
+		group.members.forEach( function (member) {
+			if (member.userId == Meteor.userId() && member.status == 'active') {
+				groupList.push(group);
+				return;
+			}
+		});
+	});
+	
+	return groupList;
 };
 
 // Groups that this user is not a member of
 Template.groups.other_groups = function () {
-  return Groups.find({ members: { $ne: Meteor.userId() } });
+	var groups = Groups.find({});
+	
+	var groupList = new Array();
+	groups.forEach( function (group) {
+		var display = true;
+		if (group.members) {
+			group.members.forEach( function (member) {
+				if (member.userId == Meteor.userId()) {
+					if (member.status == 'active')
+						display = false;
+					if (group.type == 'invite_only' && 
+					    member.status != 'invited' && member.status != 'left')
+					  display = false;
+					if (member.status == 'invited')
+						group.is_invited = true;
+				}
+			});
+		} else {
+			if (group.type == 'invite_only')
+				display = false;
+		}
+		
+		if (display)
+			groupList.push(group);
+	});
+	
+	return groupList;
 };
 
 Template.main.selected_group = function() {
@@ -24,17 +62,65 @@ Template.groups.group = function () {
   if (!group) {
 	  return null;
   }
-  var member_list = Meteor.users.find({_id: {$in: group.members}});
-  group.member_list = new Array();
-  member_list.forEach(function (member) {
-    member.is_coordinator = _.contains(group.coordinators, member._id);
-		member.me = (member._id == Meteor.userId());
-		group.member_list.push(member);
-  });
-  group.is_member = _.contains(group.members, Meteor.userId());
-  group.is_coordinator = _.contains(group.coordinators, Meteor.userId());
   
-  return group;
+  // group type
+  group.type_open = group.type == 'open';
+  group.type_visible = group.type == 'visible';
+  group.can_join = true;
+  group.is_coordinator = false;
+  if (group.type == 'invite_only')
+		group.type = 'invite only';
+  
+  group.member_list = new Array();
+		
+  if (group.members) {
+		// determine if we are a coordinator
+		group.members.forEach(function (member) {
+			if (member.userId == Meteor.userId() && member.coordinator) {
+				group.is_coordinator = true;
+				return;
+			}
+		});	
+	
+		group.members.forEach(function (member) {
+			// look up the user data for each member
+			var user = Meteor.users.findOne(member.userId);
+			if (user) {
+				member.profile = user.profile;
+			}
+			member._id = member.userId;
+			member.me = (member._id == Meteor.userId());
+			member.active = (member.status == 'active');
+			
+			if (member.me) {
+				if (member.status == 'active') {
+					group.is_member = true;
+				} else {
+					group.can_join = false;
+					group.has_left = (member.status == 'left');
+					group.is_invited = (member.status == 'invited');
+					group.is_requested = (member.status == 'requested');
+					group.is_rejected = (member.status == 'rejected');
+				}
+			}
+			
+			if (member.status == 'active' || group.is_coordinator)
+				group.member_list.push(member);
+		});
+		
+		// sort the members by nickname
+		group.member_list.sort(function (a, b) {
+			if (displayName(a) > displayName(b)) {
+				return 1;
+			} else if (displayName(a) < displayName(b)) {
+				return -1;
+			} else {
+				return 0;
+			}
+		});
+	}
+	
+	return group;
 };
 
 Template.groups.events({
@@ -53,43 +139,66 @@ Template.group.events({
   'click': function () {
     Session.set("selected_group", this._id);
     Session.set("selected_member", null);
+ 		Session.set("selected_transaction", null);
+ 		Session.set("transaction_error", null);
+ 		Session.set("transaction_filter_query", '');
+ 		Session.set("transaction_filter_month", null);
+ 		Session.set("transaction_filter_member", null);
   },
 });
 
 Template.group_detail.events({
   'click .editgroup': function () {
-	if (this.is_coordinator) {
-      openEditGroupDialog(false);
-    } else {
-	  alert('Only the group coordinator can edit this group.');
-    }
+		if (this.is_coordinator) {
+			openEditGroupDialog(false);
+		} else {
+			alert('Only the group coordinator can edit this group.');
+		}
+  },
+  'click .invitegroup': function () {
+		if (this.is_coordinator) {
+			openInviteGroupDialog();
+		} else {
+			alert('Only the group coordinator can invite people to groups.');
+		}
   },
   'click .removegroup': function () {
     if (this.is_coordinator) {
 			if (confirm('Are you sure you want to remove this group?')) {
-				Groups.remove(this._id);
-				Session.set("selected_group", null);
-				Session.set("selected_member", null);
-				// resubscribe to transactions when group membership changes
-				Meteor.subscribe("transactions");
+				Meteor.call('removeGroup', {
+					groupId: this._id,
+				}, function (error, group) {
+					if (error) {
+						alert(error.reason);
+					} else {
+						Session.set("selected_group", null);
+						Session.set("selected_member", null);
+						// resubscribe to transactions when group membership changes
+						Meteor.subscribe("transactions");
+					}
+				});
 			}
 		} else {
 			alert('Only the group coordinator can remove this group.');
     }
   },
   'click .joingroup': function () {
-	// is the user not a member of this group?
-    if (!this.is_member) {
-	  Meteor.call('joinGroup', {
-			groupId: this._id,
-			userId: Meteor.userId(),
-		}, function (error, group) {
-			if (!error) {
-				// resubscribe to transactions when group membership changes
-				Meteor.subscribe("transactions");
-			}
-		});
-	}
+		// is the user not a member of this group?
+		if (!this.is_member) {
+			Meteor.call('joinGroup', {
+				groupId: this._id,
+				userId: Meteor.userId(),
+			}, function (error, group) {
+				if (error) {
+					alert(error.reason);
+				} else {
+				  // set us as the currently selected member
+				  Session.set("selected_member", Meteor.userId());
+					// resubscribe to transactions when group membership changes
+					Meteor.subscribe("transactions");
+				}
+			});
+		}
   },
   'click .leavegroup': function () {
 		// is the user a member of this group?

@@ -1,43 +1,6 @@
 
 ///////////////////////////////////////////////////////////////////////////
 
-balance_GetUserBalance = function(userId, groupId) {
-	var balance = 0.00;
-	var query;
-	
-	if (groupId) {
-		query = { 
-			'splits.userId': userId, 
-			groupId: groupId
-		};
-	} else {
-		query = { 
-			'splits.userId': userId 
-		};
-	}
-	
-	// find all matching transactions and total the split amounts
-	// where the userId matches
-	var transactions = Transactions.find(query, { splits: 1 });
-	transactions.forEach(function (transaction) {
-		transaction.splits.forEach(function (split) {
-			if (split.userId == userId) 
-				balance += parseFloat(split.amount.toFixed(2));
-		});
-	});
-	
-	return parseFloat(balance.toFixed(2));
-};
-
-balance_GetGroupMembers = function(groupId) {
-	// load the names of the users in this group
-	var group = Groups.findOne(groupId);
-	if (!group)
-		return null;
-	
-	return Meteor.users.find({_id: {$in: group.members}});
-};
-
 balance_prepareSplits = function(splits, debits, credits) {
 	// splits is an array of:
 	//  userId, amount, description
@@ -78,3 +41,11 @@ balance_formatAmount = function(amount) {
 		
 	return amount;
 };
+
+balance_toFixed = function(amount, precision) {
+	if (amount == '') {
+		return 0;
+	} else {
+		return parseFloat(parseFloat(amount).toFixed(precision));
+	}
+}

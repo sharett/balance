@@ -10,6 +10,7 @@ openEditGroupDialog = function (create) {
 		var group = Groups.findOne(groupId);
     Template.editGroup.group_name = group.name;
     Template.editGroup.description = group.description;
+    Template.editGroup.type = group.type;
     Template.editGroup.create = false;
   } else {
     Template.editGroup.create = true;
@@ -20,7 +21,15 @@ openEditGroupDialog = function (create) {
 };
 
 Template.dialogs.showEditGroupDialog = function () {
-  return Session.get("showEditGroupDialog");
+	return Session.get("showEditGroupDialog");
+};
+
+Template.editGroup.group_type_options = function () {
+	return [
+		{ option: "open", description: "open: anyone may join" }, 
+		{ option: "visible", description: "visible: permission needed to join" }, 
+		{ option: "invite_only", description: "invite only: not visible unless invited" },
+	];
 };
 
 Template.editGroup.events({
@@ -29,6 +38,7 @@ Template.editGroup.events({
 		
 		var name = template.find(".group_name").value;
 		var description = template.find(".description").value;
+		var type = template.find(".group_type").value;
 		
 		if (name.length) {
 			if (Session.get("showEditGroupDialog") == 'create') {
@@ -36,8 +46,11 @@ Template.editGroup.events({
 				Meteor.call('createGroup', {
 					name: name,
 					description: description,
+					type: type,
 				}, function (error, group) {
-					if (! error) {
+					if (error) {
+						alert(error.reason);
+					} else {
 						Session.set("selected_group", group);
 						Session.set("selected_member", null);
 						// resubscribe to transactions when group membership changes
@@ -46,7 +59,19 @@ Template.editGroup.events({
 				});
 			} else {
 				// update an existing group
-				Groups.update(groupId, {$set: {'name': name, 'description': description } });
+				Meteor.call('updateGroup', {
+					groupId: groupId,
+					name: name,
+					description: description,
+					type: type,
+				}, function (error, group) {
+					if (error) {
+						alert(error.reason);
+					} else {
+						// resubscribe to transactions when group membership changes
+						Meteor.subscribe("transactions");
+					}
+				});
 			}
 			
 			Session.set("showEditGroupDialog", false);
@@ -57,11 +82,16 @@ Template.editGroup.events({
 	},
 
   'click .cancel': function () {
-    Session.set("showEditGroupDialog", false);
+		Session.set("showEditGroupDialog", false);
   }
 });
 
 Template.editGroup.error = function () {
   return Session.get("editGroupError");
 };
+
+Template.editGroupTypeOption.selected = function () {
+  return this.option == Template.editGroup.type;
+};
+
 
