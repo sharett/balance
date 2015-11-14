@@ -2,6 +2,7 @@ balance
 =======
 
 Version 1.1 - November 13, 2015
+
 Built with Meteor 1.2.1
 
 Balance is a tool to keep track of shared finances for groups.
