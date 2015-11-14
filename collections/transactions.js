@@ -11,7 +11,7 @@
 *        .amount
 *        .description
 * 			 .approved (boolean)
-* 
+*
 */
 
 Transactions = new Meteor.Collection("transactions");
@@ -21,7 +21,7 @@ Meteor.methods({
     options = options || {};
 
 		balance_transactionPrepare(options, this.userId);
-		
+
 		return Transactions.insert({
 			groupId: options.groupId,
 			date: options.date,
@@ -42,12 +42,12 @@ Meteor.methods({
 	  // are all members current?
 	  var transaction = Transactions.findOne(options.transactionId);
 	  if (!balance_splitsMembersCurrent(transaction))
-			throw new Meteor.Error(400, 
+			throw new Meteor.Error(400,
 				"Some of the parties in this transaction have left the group.  This transaction " +
 				"cannot be edited.");
 
 		balance_transactionPrepare(options, this.userId);
-		
+
 		return Transactions.update(options.transactionId, {
 			groupId: options.groupId,
 			date: options.date,
@@ -67,7 +67,7 @@ Meteor.methods({
 	  // are all members current?
 	  var transaction = Transactions.findOne(options.transactionId);
 	  if (!balance_splitsMembersCurrent(transaction))
-			throw new Meteor.Error(400, 
+			throw new Meteor.Error(400,
 				"Some of the parties in this transaction have left the group.  This transaction " +
 				"cannot be removed.");
 
@@ -84,7 +84,7 @@ Meteor.methods({
     // transactionId
     if (! (typeof options.transactionId === "string" && options.transactionId.length))
       throw new Meteor.Error(400, "Transaction ID missing.");
-		
+
 		// update all splits that match
 		var transaction = Transactions.findOne(options.transactionId);
 		var newSplits = new Array();
@@ -93,7 +93,7 @@ Meteor.methods({
 				split.approved = options.approved;
 			newSplits.push(split);
 		});
-		
+
 		return Transactions.update(options.transactionId,
 			{$set: { splits: newSplits }});
   },
@@ -114,18 +114,18 @@ function balance_transactionPrepare(options, creatingUserId) {
   if (!balance_isValidDate(date))
     throw new Meteor.Error(400, "The date is invalid.");
   options.date = balance_parseDate(options.date);
-  
+
   // description
   if (! (typeof options.description === "string" && options.description.length))
     throw new Meteor.Error(400, "A description is required.");
 
 	// type
 	options.type = balance_verifyTransactionType(options.type);
-			
+
   // splits
   if (! (typeof options.splits === "object"))
     throw new Meteor.Error(400, "Splits must be an object.");
-    
+
   var splitTotal = 0.00;
   var amount;
   options.total = 0.00;
@@ -146,7 +146,7 @@ function balance_transactionPrepare(options, creatingUserId) {
     // approved?
     group.members.forEach( function (member) {
 			if (member.userId == split.userId) {
-				split.approved = 
+				split.approved =
 				  (member.userId == creatingUserId) ||
 					((member.approval == 'none') ||
 					 (member.approval == 'debits' && split.amount >= 0));
@@ -164,7 +164,7 @@ function balance_transactionPrepare(options, creatingUserId) {
   });
   options.splits = newSplits;
   splitTotal = parseFloat(splitTotal.toFixed(2));
-  
+
   // total of the splits must equal to zero
   if (splitTotal != 0)
 	  throw new Meteor.Error(400, "The total of all debits and credits must equal zero.");

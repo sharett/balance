@@ -2,46 +2,49 @@
 // editGroup dialog
 
 openEditGroupDialog = function (create) {
-  if (!create) {
-		// is there a selected group?
-		var groupId = Session.get("selected_group");
-		if (!groupId)
-			return;
-		var group = Groups.findOne(groupId);
-    Template.editGroup.group_name = group.name;
-    Template.editGroup.description = group.description;
-    Template.editGroup.type = group.type;
-    Template.editGroup.create = false;
-  } else {
-    Template.editGroup.create = true;
-  }
-
+  Session.set("editGroupType", create ? 'create' : 'update');
   Session.set("editGroupError", null);
-  Session.set("showEditGroupDialog", create ? 'create' : 'update');
+  Session.set("editGroupTypeOption", 'visible');
+
+  Modal.show('editGroup');
 };
 
-Template.dialogs.showEditGroupDialog = function () {
-	return Session.get("showEditGroupDialog");
-};
-
-Template.editGroup.group_type_options = function () {
-	return [
-		{ option: "open", description: "open: anyone may join" }, 
-		{ option: "visible", description: "visible: permission needed to join" }, 
-		{ option: "invite_only", description: "invite only: not visible unless invited" },
-	];
-};
+Template.editGroup.helpers({
+  'group': function() {
+    if (Session.get("editGroupType") == 'create')
+      return null;
+    var groupId = Session.get("selected_group");
+    if (!groupId)
+      return null;
+    var group = Groups.findOne(groupId);
+    if (group) {
+      Session.set("editGroupTypeOption", group.type);
+    }
+    return group;
+  },
+  'group_type_options': function() {
+    return [
+      { option: "open", description: "open: anyone may join" },
+      { option: "visible", description: "visible: permission needed to join" },
+      { option: "invite_only", description: "invite only: not visible unless invited" },
+    ];
+  },
+  'error': function () {
+    return Session.get("editGroupError");
+  },
+  'create': function () { return Session.get('editGroupType') == 'create'; },
+});
 
 Template.editGroup.events({
   'click .save': function (event, template) {
 		var groupId = Session.get("selected_group");
-		
+
 		var name = template.find(".group_name").value;
 		var description = template.find(".description").value;
 		var type = template.find(".group_type").value;
-		
+
 		if (name.length) {
-			if (Session.get("showEditGroupDialog") == 'create') {
+			if (Session.get("editGroupType") == 'create') {
 				// create a new group
 				Meteor.call('createGroup', {
 					name: name,
@@ -73,8 +76,8 @@ Template.editGroup.events({
 					}
 				});
 			}
-			
-			Session.set("showEditGroupDialog", false);
+
+      Modal.hide('editGroup');
 		} else {
 			Session.set("editGroupError",
 									"A name is required.");
@@ -82,16 +85,42 @@ Template.editGroup.events({
 	},
 
   'click .cancel': function () {
-		Session.set("showEditGroupDialog", false);
-  }
+    Modal.hide('editGroup');
+  },
+
+  'click .remove': function () {
+    var group = Groups.findOne(Session.get("selected_group"));
+    group.members.forEach(function (member) {
+      if (member.userId == Meteor.userId() && member.coordinator) {
+        group.is_coordinator = true;
+        return;
+      }
+    });
+
+    if (group.is_coordinator) {
+      if (confirm('Are you sure you want to remove this group?')) {
+        Meteor.call('removeGroup', {
+          groupId: group._id,
+        }, function (error, group) {
+          if (error) {
+            alert(error.reason);
+          } else {
+            Modal.hide('editGroup');
+            Session.set("selected_group", null);
+            Session.set("selected_member", null);
+            // resubscribe to transactions when group membership changes
+            Meteor.subscribe("transactions");
+          }
+        });
+      }
+    } else {
+      alert('Only the group coordinator can remove this group.');
+    }
+  },
 });
 
-Template.editGroup.error = function () {
-  return Session.get("editGroupError");
-};
-
-Template.editGroupTypeOption.selected = function () {
-  return this.option == Template.editGroup.type;
-};
-
-
+Template.editGroupTypeOption.helpers({
+  'selected': function () {
+    return this.option == Session.get("editGroupTypeOption");
+  }
+});

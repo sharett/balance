@@ -8,7 +8,7 @@ Meteor.publish("myGroups", function () {
 
 Meteor.publish("otherGroups", function () {
   return Groups.find(
-		{ "members.userId": { $ne: this.userId } }, 
+		{ "members.userId": { $ne: this.userId } },
 		{ fields: { name: 1, description: 1, type: 1 } });
 });
 
@@ -22,6 +22,6 @@ Meteor.publish("transactions", function () {
   groups.forEach(function (group) {
     groupIds.push(group._id);
   });
-  
+
   return Transactions.find({ groupId: { $in: groupIds }});
 });

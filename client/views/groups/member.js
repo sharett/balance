@@ -1,85 +1,76 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Members
 
-Template.member.member = function () {
-	var member = balance_getGroupMember(Session.get("selected_group"), Session.get("selected_member"));
-	Template.member.original_status = member.status;
-	return member;
-};
+Template.member.helpers({
+	'member': function () {
+		var member = balance_getGroupMember(Session.get("selected_group"), Session.get("selected_member"));
+		Template.member.original_status = member.status;
+		return member;
+	},
+	'balance': function () {
+	  var groupId = Session.get("selected_group");
+	  if (!groupId)
+		  return null;
 
-Template.member.balance = function () {
-  var groupId = Session.get("selected_group");
-  if (!groupId)
-	  return null;
-
-  return balance_formatAmount(
-		balance_GetUserBalance(Session.get("selected_member"), groupId)
-	);
-};
-
-Template.member.total_balance = function () {
-	if (Meteor.userId() == Session.get("selected_member")) {
-		return balance_formatAmount(
-			balance_GetUserBalance(Session.get("selected_member"))
-		);
-	} else {
-		return null;
-	}
-};
-
-Template.member.is_user_group_coordinator = function() {
-	return balance_isGroupCoordinator(Session.get("selected_group"), Meteor.userId());
-};
-
-Template.member.status_type_options = [
-		{ option: "active" }, 
-		{ option: "left" }, 
+	  return balance_formatAmount(
+			balance_GetUserBalance(Session.get("selected_member"), groupId)
+		)
+	},
+	'total_balance': function () {
+		if (Meteor.userId() == Session.get("selected_member")) {
+			return balance_formatAmount(
+				balance_GetUserBalance(Session.get("selected_member"))
+			);
+		} else {
+			return null;
+		}
+	},
+	'is_user_group_coordinator': function() {
+		return balance_isGroupCoordinator(Session.get("selected_group"), Meteor.userId());
+	},
+	'status_type_options': [
+		{ option: "active" },
+		{ option: "left" },
 		{ option: "invited" },
 		{ option: "requested" },
 		{ option: "rejected" },
-	];
-
-Template.member.approval_type_options = [
-		{ option: "all" }, 
-		{ option: "debits" }, 
+	],
+	'approval_type_options': [
+		{ option: "all" },
+		{ option: "debits" },
 		{ option: "none" },
-	];
+	],
+	'credit': function () {
+	  // look up the credit between the current user and the selected user
+	  var selectedMember = Session.get("selected_member");
+	  var creditLine = CreditLines.findOne({creditor: Meteor.userId(), debtor: selectedMember});
+	  var amount = 0.00;
+	  if (creditLine && typeof creditLine.amount == 'number') {
+			amount = creditLine.amount;
+	  }
+	  return amount.toFixed(2);
+	},
+	'credit_to_me': function () {
+	  // look up the credit between the selected user and the current user
+	  var selectedMember = Session.get("selected_member");
+	  var creditLine = CreditLines.findOne({creditor: selectedMember, debtor: Meteor.userId()});
+	  var amount = 0.00;
+	  if (creditLine && typeof creditLine.amount == 'number') {
+			amount = creditLine.amount;
+	  }
+	  return amount.toFixed(2);
+	},
+	'me': function () {
+	  return Meteor.userId() == Session.get("selected_member");
+	},
+	'note': function () {
+	  return Session.get("member_note");
+	},
+	'error': function () {
+	  return Session.get("member_error");
+	},
+});
 
-Template.member.credit = function () {
-  // look up the credit between the current user and the selected user
-  var selectedMember = Session.get("selected_member");
-  var creditLine = CreditLines.findOne({creditor: Meteor.userId(), debtor: selectedMember});
-  var amount = 0.00;
-  if (creditLine && typeof creditLine.amount == 'number') {
-		amount = creditLine.amount;
-  }
-  return amount.toFixed(2);
-};
-
-Template.member.credit_to_me = function () {
-  // look up the credit between the selected user and the current user
-  var selectedMember = Session.get("selected_member");
-  var creditLine = CreditLines.findOne({creditor: selectedMember, debtor: Meteor.userId()});
-  var amount = 0.00;
-  if (creditLine && typeof creditLine.amount == 'number') {
-		amount = creditLine.amount;
-  }
-  return amount.toFixed(2);
-};
-
-
-Template.member.me = function () {
-  return Meteor.userId() == Session.get("selected_member");
-};
-
-Template.member.note = function () {
-  return Session.get("member_note");
-};
-
-Template.member.error = function () {
-  return Session.get("member_error");
-};
-  
 Template.member.events({
 	'change .approval_type': function (event, template) {
 		Meteor.call('updateApproval', {
@@ -144,21 +135,21 @@ Template.member.events({
   },
 });
 
-Template.member_detail.selected = function () {
-  return Session.equals("selected_member", this._id) ? "selected" : '';
-};
+Template.member_detail.helpers({
+	'selected': function () {
+	  return Session.equals("selected_member", this._id) ? "selected" : '';
+	},
+	'displayName': function () {
+	  return displayName(this);
+	},
+	'balance': function () {
+	  var groupId = Session.get("selected_group");
+	  if (!groupId)
+		  return null;
 
-Template.member_detail.displayName = function () {
-  return displayName(this);
-};
-
-Template.member_detail.balance = function () {
-  var groupId = Session.get("selected_group");
-  if (!groupId)
-	  return null;
-	  
-	return balance_formatAmount(balance_GetUserBalance(this._id, groupId));
-};
+		return balance_formatAmount(balance_GetUserBalance(this._id, groupId));
+	},
+});
 
 Template.member_detail.events({
   'click': function () {
@@ -170,11 +161,16 @@ Template.member_detail.events({
   },
 });
 
-Template.editApprovalTypeOption.selected = function () {
-  return this.option == Template.member.member().approval;
-};
+Template.editApprovalTypeOption.helpers({
+	'selected': function () {
+		var member = balance_getGroupMember(Session.get("selected_group"), Session.get("selected_member"));
+		return this.option == member.approval;
+	},
+});
 
-Template.editStatusTypeOption.selected = function () {
-  return this.option == Template.member.member().status;
-};
-
+Template.editStatusTypeOption.helpers({
+	'selected': function () {
+		var member = balance_getGroupMember(Session.get("selected_group"), Session.get("selected_member"));
+	  return this.option == member.status;
+	},
+});

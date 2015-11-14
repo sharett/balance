@@ -1,15 +1,27 @@
 balance
 =======
 
+Version 1.1 - November 13, 2015
+Built with Meteor 1.2.1
+
 Balance is a tool to keep track of shared finances for groups.
 
 # Installation
 
-1. npm install -g meteorite (if not already installed)
-2. git clone https://github.com/sharett/balance
-3. cd balance
-4. mrt
-5. open browser to http://localhost:3000
+Install Meteor if you haven't already:
+
+1. curl https://install.meteor.com/ | sh
+
+Install Balance:
+
+1. git clone https://github.com/sharett/balance
+2. cd balance
+3. meteor
+4. open browser to http://localhost:3000
+
+Deploy:
+
+1. meteor deploy <site name>.meteor.com
 
 # Configuration
 
@@ -32,4 +44,3 @@ MIT license
 
 # Author
 Alex Jarrett (http://www.sharett.org)
-

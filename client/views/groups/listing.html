@@ -1,0 +1,28 @@
+<template name="grouplisting">
+  <h3>All groups</h3>
+  <p>Click on a group to view, join or request access.</p>
+  <table class="table table-striped table-hover">
+    <thead>
+      <tr>
+        <th>name</th>
+        <th>description</th>
+        <th>type</th>
+        <th>status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each groups}}
+      {{> grouplisting_detail}}
+      {{/each}}
+    </tbody>
+  </table>
+</template>
+
+<template name="grouplisting_detail">
+  <tr class="{{#if is_invited}}info{{/if}}">
+    <td>{{name}}</td>
+    <td>{{description}}</td>
+    <td>{{type}}</td>
+    <td>{{member_status}}</td>
+  </tr>
+</template>

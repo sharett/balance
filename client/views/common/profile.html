@@ -1,26 +1,37 @@
 <template name="editProfile">
-  <div class="mask"> </div>
-  <div class="modal">
-    <div class="modal-header">
-      <button type="button" class="close cancel">&times;</button>
-      <h3>My profile</h3>
-    </div>
+  <div class="modal" id="editProfile" role="dialog">
+    <div class="modal-dialog">
+      <div class="modal-content">
 
-    <div class="modal-body">
-      {{#if error}}
-        <div class="alert alert-error">{{error}}</div>
-      {{/if}}
+        <div class="modal-header">
+          <button type="button" class="close cancel" data-dismiss="modal">
+            <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+          </button>
+          <h3 class="modal-title">My profile</h3>
+        </div>
 
-      <label>Full name</label>
-      <input type="text" class="full_name span5" value="{{full_name}}">
-      <label>Nickname</label>
-      <input type="text" class="nickname span5" value="{{nickname}}">
-    </div>
+        <div class="modal-body">
+          {{#if error}}
+          <div class="alert alert-danger" role="alert">{{error}}</div>
+          {{/if}}
 
-    <div class="modal-footer">
-      <a href="#" class="btn cancel">Cancel</a>
-      <a href="#" class="btn btn-primary save">Update</a>
+          <div class="form-group">
+            <label for="editProfile_full_name">Full name</label>
+            <input type="text" class="form-control full_name" id="editProfile_full_name" value="{{full_name}}">
+          </div>
+
+          <div class="form-group">
+            <label for="editProfile_nickname">Nickname</label>
+            <input type="text" class="form-control nickname" id="editProfile_nickname" value="{{nickname}}">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <a href="#" class="btn btn-default cancel">Cancel</a>
+          <a href="#" class="btn btn-primary save">Update</a>
+        </div>
+
+      </div>
     </div>
   </div>
 </template>
-

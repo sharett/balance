@@ -1,38 +1,53 @@
 <template name="editGroup">
-  <div class="mask"> </div>
-  <div class="modal">
-    <div class="modal-header">
-      <button type="button" class="close cancel">&times;</button>
-      <h3>{{#if create}}New{{else}}Edit{{/if}} group</h3>
-    </div>
+  <div class="modal" id="editGroup" role="dialog">
+    <div class="modal-dialog">
+      <div class="modal-content">
 
-    <div class="modal-body">
-      {{#if error}}
-        <div class="alert alert-error">{{error}}</div>
-      {{/if}}
+        <div class="modal-header">
+          <button type="button" class="close cancel" data-dismiss="modal">
+            <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+          </button>
+          <h3 class="modal-title">{{#if create}}New{{else}}Edit{{/if}} group</h3>
+        </div>
 
-      <label>Name</label>
-      <input id="edit_group_name" type="text" class="group_name span5" value="{{group_name}}">
+        <div class="modal-body">
+          {{#if error}}
+          <div class="alert alert-danger" role="alert">{{error}}</div>
+          {{/if}}
 
-      <label>Description</label>
-      <textarea id="edit_group_description" class="description span5">{{description}}</textarea>
+          <div class="form-group">
+            <label for="edit_group_name">Name</label>
+            <input id="edit_group_name" type="text" class="form-control group_name" value="{{group.name}}">
+          </div>
 
-      <label>Type</label>
-      <select id="edit_group_type" class="group_type span3">
-			 	{{#each group_type_options}}
-					{{> editGroupTypeOption}}
-				{{/each}}
-      </select>
-    </div>
+          <div class="form-group">
+            <label for="edit_group_description">Description</label>
+            <textarea id="edit_group_description" class="form-control description">{{group.description}}</textarea>
+          </div>
 
-    <div class="modal-footer">
-      <a href="#" class="btn cancel">Cancel</a>
-      <a href="#" class="btn btn-primary save">{{#if create}}Create{{else}}Update{{/if}}</a>
+          <div class="form-group">
+            <label for="edit_group_type">Type</label>
+            <select id="edit_group_type" class="form-control group_type">
+              {{#each group_type_options}}
+              {{> editGroupTypeOption}}
+              {{/each}}
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          {{#unless create}}
+          <a href="#" class="btn btn-danger pull-left remove">Remove this group</a>
+          {{/unless}}
+          <a href="#" class="btn btn-default cancel">Cancel</a>
+          <a href="#" class="btn btn-primary save">{{#if create}}Create{{else}}Update{{/if}}</a>
+        </div>
+
+      </div>
     </div>
   </div>
 </template>
 
 <template name="editGroupTypeOption">
-	<option value="{{option}}"{{#if selected}} selected="selected"{{/if}}>{{description}}</option>
+	<option value="{{option}}" selected={{#if selected}}selected{{/if}}>{{description}}</option>
 </template>
-

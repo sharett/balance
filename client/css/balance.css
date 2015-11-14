@@ -1,1 +1,9 @@
 /* CSS declarations go here */
+
+li.nav-header {
+  cursor: default;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin: 15px;
+}

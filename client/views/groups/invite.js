@@ -3,31 +3,34 @@
 
 openInviteGroupDialog = function () {
   Session.set("inviteGroupError", null);
-  Session.set("showInviteGroupDialog", true);
+
+  Modal.show('inviteGroup');
 };
 
-Template.dialogs.showInviteGroupDialog = function () {
-  return Session.get("showInviteGroupDialog");
-};
+Template.inviteGroup.helpers({
+  'error': function () {
+    return Session.get("inviteGroupError");
+  },
+});
 
 Template.inviteGroup.events({
   'click .invite': function (event, template) {
 		var groupId = Session.get("selected_group");
-		
+
 		var name = template.find(".invite_name").value;
 		var email = template.find(".invite_email").value;
 		var message = template.find(".invite_msg").value;
-		
+
 		if (!name.length) {
 			Session.set("inviteGroupError", "A name is required.");
 			return;
 		}
-		
+
 		if (!email.length) {
 			Session.set("inviteGroupError", "An e-mail is required.");
 			return;
 		}
-		
+
 		// invite user to group
 		Meteor.call('inviteGroup', {
 			groupId: groupId,
@@ -38,18 +41,16 @@ Template.inviteGroup.events({
 			if (error) {
 				Session.set("inviteGroupError", error.reason);
 			} else {
-				Session.set("showInviteGroupDialog", false);
+				Modal.hide("inviteGroup");
 			}
 		});
 	},
-	
+
   'click .cancel': function () {
-    Session.set("showInviteGroupDialog", false);
+    Modal.hide("inviteGroup");
   }
 });
 
 Template.inviteGroup.error = function () {
   return Session.get("inviteGroupError");
 };
-
-

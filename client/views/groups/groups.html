@@ -3,105 +3,130 @@
   {{#unless selected_group}}
   <h4>Select or create a group.</h4>
   {{/unless}}
-	<h5>
-	Group: 
-	<div class="btn-group">
-		<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-		 {{#if selected_group}}{{group.name}}{{else}}(please choose){{/if}}
-		 <span class="caret"></span>
-		</a>
-		<ul class="dropdown-menu">
-		 <li class="nav-header">My Groups</li>
-		 {{#each groups}}
-			 {{> group}}
-		 {{/each}}
-		 <li class="divider"></li>
-		 <li><a href="#" class="creategroup">New group...</a></li>
-		 <li class="divider"></li>
-		 <li class="nav-header">Other Groups</li>
-		 {{#each other_groups}}
-			 {{> group}}
-		 {{/each}}
-		</ul>
-	</div>
-	</h5>
 
-	<ul class="nav nav-list">
-		{{#if selected_group}}
-			{{#with group}}
-				{{> group_detail}}
-			{{/with}}
-		{{/if}}
-	</ul>
+  <div class="form-group">
+  	<label for="group_selection">Group:</label>
+    <div class="btn-group" role="group" aria-label="Select a group">
+      <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"
+              aria-haspopup="true" aria-expanded="false" id="group_selection">
+        {{#if selected_group}}{{group.name}}{{else}}{{#if display_group_listing}}(viewing all groups){{else}}(please choose){{/if}}{{/if}}
+        <span class="caret"></span>
+      </button>
+  		<ul class="dropdown-menu">
+        <li><a href="#" class="creategroup">New group...</a></li>
+        <li><a href="#" class="displaygrouplisting">View all groups...</a></li>
+        <li role="separator" class="divider"></li>
+        <li class="nav-header">My Groups</li>
+  		  {{#each groups}}
+  			  {{> balancegroup}}
+  		  {{/each}}
+  		  {{#if invited_groups}}
+          <li role="separator" class="divider"></li>
+          <li class="nav-header">Invited Groups</li>
+          {{#each invited_groups}}
+            {{> balancegroup}}
+          {{/each}}
+        {{/if}}
+     </ul>
+  	</div>
+  </div>
+
+	{{#if selected_group}}
+		{{#with group}}
+			{{> group_detail}}
+		{{/with}}
+	{{/if}}
 {{else}}
-<h4>Create an account or log in to get started.</h4>
-<p>Use the "Sign In / Up" menu in the upper right corner of the screen.</p>
+  <h4>Create an account or log in to get started.</h4>
+  <p>Use the "Sign In / Join" menu in the upper right corner of the screen.</p>
 {{/if}}
 </template>
 
-<template name="group">
-  <li{{#if selected}} class="active"{{/if}}>
-    <a href="#" class="group {{selected}}">{{name}}{{#if is_invited}} (invited){{/if}}</a>
+<template name="balancegroup">
+  <li class={{#if selected}}active{{/if}}>
+    <a href="#" class="group {{selected}}">{{name}}</a>
   </li>
 </template>
 
 <template name="group_detail">
-  <p>{{description}}</p>
-  <li class="nav-header">Settings</li>
-  <li>Type: {{type}}</li>
-  {{#if is_member}}
-  <li class="nav-header">Members</li>
-    {{#each member_list}}
-      {{> member_detail}}
-    {{/each}}
-  {{/if}}
-  <li class="divider"></li>
-  {{#if is_coordinator}}
-  With group:
-  <div class="btn-group">
-   <input type="button" class="btn btn-small editgroup" value="Edit" />
-   <input type="button" class="btn btn-small invitegroup" value="Invite" />
-   <input type="button" class="btn btn-small removegroup" value="Remove" />
+  <div class="panel panel-info">
+    <div class="panel-heading">
+      Settings
+      {{#if is_coordinator}}<button type="button" class="btn btn-default btn-xs pull-right editgroup">Edit</button>{{/if}}
+    </div>
+    <ul class="list-group">
+      <li class="list-group-item"><strong>Description:</strong>
+        {{#if short_desc}}
+          {{#if group_description_show_more}}
+            {{description}} <a href="#" class="toggledescription">(less)</a>
+          {{else}}
+            {{short_desc}}... <a href="#" class="toggledescription">(more)</a>
+          {{/if}}
+        {{else}}
+          {{description}}
+        {{/if}}
+      </li>
+      <li class="list-group-item"><strong>Type:</strong> {{type}}</li>
+    </ul>
   </div>
-  {{else}}
-    {{#if is_member}}
-    <input type="button" class="btn btn-small leavegroup" value="Leave this group" />
-    {{/if}}
+
+  {{#if is_member}}
+  <div class="panel panel-info">
+    <div class="panel-heading">
+      Members
+      {{#if is_coordinator}}<button type="button" class="btn btn-default btn-xs pull-right invitegroup">Invite</button>{{/if}}
+    </div>
+    <div class="list-group">
+      {{#each member_list}}
+      {{> member_detail}}
+      {{/each}}
+    </div>
+  </div>
   {{/if}}
+
+  {{#unless is_coordinator}}
+    {{#if is_member}}
+      <button type="button" class="btn btn-default btn-sm leavegroup">Leave this group</button>
+    {{/if}}
+  {{/unless}}
   {{#unless is_member}}
     {{#if is_requested}}
       <p>You have requested to join this group and are waiting for coodinator approval.</p>
     {{/if}}
     {{#if is_invited}}
       <p>You have been invited to join this group.</p>
-      <input type="button" class="btn btn-small joingroup" value="Accept invitation" />
+      <button type="button" class="btn btn-default btn-sm joingroup">Accept invitation</button>
     {{/if}}
     {{#if is_rejected}}
       <p>You are not allowed to join this group.</p>
     {{/if}}
     {{#if has_left}}
       <p>You have been a member of this group.</p>
-      <input type="button" class="btn btn-small joingroup" value="Rejoin this group" />
+      <button type="button" class="btn btn-default btn-sm joingroup">Rejoin this group</button>
     {{/if}}
     {{#if can_join}}
 			{{#if type_open}}
-				<input type="button" class="btn btn-small joingroup" value="Join this group" />
+				<button type="button" class="btn btn-default btn-sm joingroup">Join this group</button>
 			{{/if}}
 			{{#if type_visible}}
-			  <input type="button" class="btn btn-small joingroup" value="Ask to join this group" />
+			  <button type="button" class="btn btn-default btn-sm joingroup">Ask to join this group</button>
 			{{/if}}
 		{{/if}}
   {{/unless}}
 </template>
 
 <template name="member_detail">
-  <li{{#if selected}} class="active"{{/if}}>
-    <a href="#" class="{{selected}}">
-			{{displayName}}
-	    (${{balance}})
-	    {{#unless active}}<i class="icon-ban-circle" title="Inactive member"></i>{{/unless}}
-      {{#if coordinator}}<i class="icon-wrench" title="Group coordinator"></i>{{/if}}
-      {{#if me}}<span class="label label-info">You</span>{{/if}}
-    </a>
-  </li>
+  <a href="#" class="list-group-item {{#if selected}}active{{/if}}">
+    {{displayName}}
+    (${{balance}})
+    {{#unless active}}
+    <span class="glyphicon glyphicon-ban-circle" title="Inactive member" aria-hidden="true"></span>
+    <span class="sr-only">Inactive member</span>
+    {{/unless}}
+    {{#if coordinator}}
+    <span class="glyphicon glyphicon-wrench" title="Group coordinator" aria-hidden="true"></span>
+    <span class="sr-only">Group coordinator</span>
+    {{/if}}
+    {{#if me}}<span class="label label-info">You</span>{{/if}}
+  </a>
 </template>

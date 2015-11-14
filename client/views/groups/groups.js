@@ -1,141 +1,147 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Groups
 
-// Groups that this user is a member of
-Template.groups.groups = function () {
-	var groups = Groups.find({ "members.userId": Meteor.userId() });
-	
-	var groupList = new Array();
-	groups.forEach( function (group) {
-		group.members.forEach( function (member) {
-			if (member.userId == Meteor.userId() && member.status == 'active') {
-				groupList.push(group);
-				return;
-			}
-		});
-	});
-	
-	return groupList;
-};
+Template.groups.helpers({
+	'groups': function () {
+		// Groups that this user is a member of
+		var groups = Groups.find({ "members.userId": Meteor.userId() }, { sort: { name: 1 } });
 
-// Groups that this user is not a member of
-Template.groups.other_groups = function () {
-	var groups = Groups.find({});
-	
-	var groupList = new Array();
-	groups.forEach( function (group) {
-		var display = true;
-		if (group.members) {
+		var groupList = new Array();
+		groups.forEach( function (group) {
 			group.members.forEach( function (member) {
-				if (member.userId == Meteor.userId()) {
-					if (member.status == 'active')
-						display = false;
-					if (group.type == 'invite_only' && 
-					    member.status != 'invited' && member.status != 'left')
-					  display = false;
-					if (member.status == 'invited')
-						group.is_invited = true;
+				if (member.userId == Meteor.userId() && member.status == 'active') {
+					groupList.push(group);
+					return;
 				}
 			});
-		} else {
-			if (group.type == 'invite_only')
-				display = false;
+		});
+
+		return groupList;
+	},
+	'invited_groups': function() {
+		// Groups that this user has been invited to
+		var groups = Groups.find({}, { sort: { name: 1 } });
+
+		var groupList = new Array();
+		groups.forEach( function (group) {
+			var display = false;
+			if (group.members) {
+				group.members.forEach( function (member) {
+					if (member.userId == Meteor.userId()) {
+						if (member.status == 'invited' || member.status == 'left')
+							display = true;
+						if (member.status == 'invited')
+							group.is_invited = true;
+					}
+				});
+			}
+
+			if (display)
+				groupList.push(group);
+		});
+
+		return groupList;
+	},
+	'selected_group': function() {
+		return Session.get("selected_group");
+	},
+	'group': function () {
+	  var group = Groups.findOne(Session.get("selected_group"));
+	  if (!group) {
+		  return null;
+	  }
+
+	  // group type
+	  group.type_open = group.type == 'open';
+	  group.type_visible = group.type == 'visible';
+	  group.can_join = true;
+	  group.is_coordinator = false;
+	  if (group.type == 'invite_only')
+			group.type = 'invite only';
+
+		// group description
+		if (group.description.length > 60) {
+			group.short_desc = group.description.substr(0, 60);
 		}
-		
-		if (display)
-			groupList.push(group);
-	});
-	
-	return groupList;
-};
 
-Template.main.selected_group = function() {
-  return Session.get("selected_group");
-};
+		// group members
+	  group.member_list = new Array();
 
-Template.groups.selected_group = function() {
-  return Session.get("selected_group");
-};
-
-Template.groups.group = function () {
-  var group = Groups.findOne(Session.get("selected_group"));
-  if (!group) {
-	  return null;
-  }
-  
-  // group type
-  group.type_open = group.type == 'open';
-  group.type_visible = group.type == 'visible';
-  group.can_join = true;
-  group.is_coordinator = false;
-  if (group.type == 'invite_only')
-		group.type = 'invite only';
-  
-  group.member_list = new Array();
-		
-  if (group.members) {
-		// determine if we are a coordinator
-		group.members.forEach(function (member) {
-			if (member.userId == Meteor.userId() && member.coordinator) {
-				group.is_coordinator = true;
-				return;
-			}
-		});	
-	
-		group.members.forEach(function (member) {
-			// look up the user data for each member
-			var user = Meteor.users.findOne(member.userId);
-			if (user) {
-				member.profile = user.profile;
-			}
-			member._id = member.userId;
-			member.me = (member._id == Meteor.userId());
-			member.active = (member.status == 'active');
-			
-			if (member.me) {
-				if (member.status == 'active') {
-					group.is_member = true;
-				} else {
-					group.can_join = false;
-					group.has_left = (member.status == 'left');
-					group.is_invited = (member.status == 'invited');
-					group.is_requested = (member.status == 'requested');
-					group.is_rejected = (member.status == 'rejected');
+	  if (group.members) {
+			// determine if we are a coordinator
+			group.members.forEach(function (member) {
+				if (member.userId == Meteor.userId() && member.coordinator) {
+					group.is_coordinator = true;
+					return;
 				}
-			}
-			
-			if (member.status == 'active' || group.is_coordinator)
-				group.member_list.push(member);
-		});
-		
-		// sort the members by nickname
-		group.member_list.sort(function (a, b) {
-			if (displayName(a) > displayName(b)) {
-				return 1;
-			} else if (displayName(a) < displayName(b)) {
-				return -1;
-			} else {
-				return 0;
-			}
-		});
-	}
-	
-	return group;
-};
+			});
+
+			group.members.forEach(function (member) {
+				// look up the user data for each member
+				var user = Meteor.users.findOne(member.userId);
+				if (user) {
+					member.profile = user.profile;
+				}
+				member._id = member.userId;
+				member.me = (member._id == Meteor.userId());
+				member.active = (member.status == 'active');
+
+				if (member.me) {
+					if (member.status == 'active') {
+						group.is_member = true;
+					} else {
+						group.can_join = false;
+						group.has_left = (member.status == 'left');
+						group.is_invited = (member.status == 'invited');
+						group.is_requested = (member.status == 'requested');
+						group.is_rejected = (member.status == 'rejected');
+					}
+				}
+
+				if (member.status == 'active' || group.is_coordinator)
+					group.member_list.push(member);
+			});
+
+			// sort the members by nickname
+			group.member_list.sort(function (a, b) {
+				if (displayName(a) > displayName(b)) {
+					return 1;
+				} else if (displayName(a) < displayName(b)) {
+					return -1;
+				} else {
+					return 0;
+				}
+			});
+		}
+
+		return group;
+	},
+	'display_group_listing': function () {
+		return Session.get("display_group_listing");
+	},
+});
 
 Template.groups.events({
   'click .creategroup': function () {
-    if (! Meteor.userId()) // must be logged in to create groups
+    if (!Meteor.userId()) // must be logged in to create groups
       return;
-    openEditGroupDialog(true);  
+    openEditGroupDialog(true);
   },
+	'click .displaygrouplisting': function () {
+		Session.set("selected_group", null);
+		Session.set("display_group_listing", true);
+	},
 });
 
-Template.group.selected = function () {
-  return Session.equals("selected_group", this._id) ? "selected" : '';
-};
+////////////////////////////////////////////////////////////////////////////////
 
-Template.group.events({
+Template.balancegroup.helpers({
+	'selected': function () {
+		return Session.equals("selected_group", this._id) ? "selected" : '';
+	},
+})
+
+Template.balancegroup.events({
   'click': function () {
     Session.set("selected_group", this._id);
     Session.set("selected_member", null);
@@ -144,7 +150,16 @@ Template.group.events({
  		Session.set("transaction_filter_query", '');
  		Session.set("transaction_filter_month", null);
  		Session.set("transaction_filter_member", null);
+		Session.set("group_description_show_more", false);
   },
+});
+
+////////////////////////////////////////////////////////////////////////////////
+
+Template.group_detail.helpers({
+	'group_description_show_more': function() {
+		return Session.get("group_description_show_more");
+	},
 });
 
 Template.group_detail.events({
@@ -218,5 +233,7 @@ Template.group_detail.events({
 			}
 		}
   },
+	'click .toggledescription': function() {
+		Session.set("group_description_show_more", !Session.get("group_description_show_more"));
+	},
 });
-

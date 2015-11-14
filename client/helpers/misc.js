@@ -11,7 +11,7 @@ balance_prepareSplits = function(splits, debits, credits) {
 		  return;
 		if (isNaN(parseFloat(debit.value)))
 		  return;
-		  
+
 		splits.push({
 			userId: debit.id.substr(2),
 			amount: -(parseFloat(debit.value)),
@@ -23,14 +23,14 @@ balance_prepareSplits = function(splits, debits, credits) {
 		  return;
 		if (isNaN(parseFloat(credit.value)))
 		  return;
-		  
+
 		splits.push({
 			userId: credit.id.substr(2),
 			amount: parseFloat(credit.value),
 			description: '',
 		});
 	});
-	
+
 	return true;
 };
 
@@ -38,7 +38,7 @@ balance_formatAmount = function(amount) {
 	amount = amount.toFixed(2);
 	if (amount.substr(-3) == '.00')
 		amount = amount.substr(0, amount.length - 3);
-		
+
 	return amount;
 };
 
