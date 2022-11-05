@@ -5,7 +5,7 @@ Version 1.1 - November 13, 2015
 
 Built with Meteor 1.2.1
 
-11/5/22: Meteor has undergone extensive changes since the version this was built for. Balance would need to be rewritten to work on a modern Meteor setup.
+11/5/22: Meteor has undergone extensive changes since the version this was built for. Balance would need to be rewritten to work on a modern Meteor setup. If you have used the working version of Balance at balance.sharett.org, that has now been shut down. If you would like an export of your data from that site please contact me via sharett.org
 
 Balance is a tool to keep track of shared finances for groups.
 
