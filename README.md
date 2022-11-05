@@ -5,6 +5,8 @@ Version 1.1 - November 13, 2015
 
 Built with Meteor 1.2.1
 
+11/5/22: Meteor has undergone extensive changes since the version this was built for. Balance would need to be rewritten to work on a modern Meteor setup.
+
 Balance is a tool to keep track of shared finances for groups.
 
 # Installation
@@ -36,9 +38,6 @@ Edit the file 'server/config.js':
 Edit the file 'lib/config.js':
 
 1. Set "adminEmail" to the e-mail address that can administer the site.
-
-# Working site
-http://balance.sharett.org
 
 # License
 MIT license
